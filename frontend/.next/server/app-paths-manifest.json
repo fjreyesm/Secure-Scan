@@ -1,4 +1,10 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
+  "/blog/page": "app/blog/page.js",
+  "/faq/page": "app/faq/page.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/page": "app/page.js"
+  "/page": "app/page.js",
+  "/services/detailed-report/page": "app/services/detailed-report/page.js",
+  "/services/digital-footprint/page": "app/services/digital-footprint/page.js",
+  "/tools/page": "app/tools/page.js"
 }
