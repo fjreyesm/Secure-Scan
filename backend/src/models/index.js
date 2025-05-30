@@ -1,20 +1,20 @@
 const { Sequelize } = require('sequelize');
-const { sequelize } = require('./config/database');
+const { sequelize } = require('../config/database');
 
 // Importar todos los modelos
-const User = require('./models/User');
-const Source = require('./models/Source');
-const Verification = require('./models/Verification');
-const Breach = require('./models/Breach');
-const VerificationBreach = require('./models/VerificationBreach');
-const BlogArticle = require('./models/BlogArticle');
-const Category = require('./models/Category');
-const ArticleCategory = require('./models/ArticleCategory');
-const Tool = require('./models/Tool');
-const Notification = require('./models/Notification');
-const ApiLog = require('./models/ApiLog');
-const SystemSetting = require('./models/SystemSetting');
-const Subscription = require('./models/Subscription');
+const User = require('./User');
+const Source = require('./Source');
+const Verification = require('./Verification');
+const Breach = require('./Breach');
+const VerificationBreach = require('./VerificationBreach');
+const BlogArticle = require('./BlogArticle');
+const Category = require('./Category');
+const ArticleCategory = require('./ArticleCategory');
+const Tool = require('./Tool');
+const Notification = require('./Notification');
+const ApiLog = require('./ApiLog');
+const SystemSetting = require('./SystemSetting');
+const Subscription = require('./Subscription');
 
 // Definir relaciones entre modelos
 
