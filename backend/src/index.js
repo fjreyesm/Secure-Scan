@@ -1,68 +1,91 @@
-require('dotenv').config();
-const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const morgan = require('morgan');
-const { body, validationResult } = require('express-validator');
+const { Sequelize } = require('sequelize');
+const { sequelize } = require('./config/database');
 
-// Importar rutas
-const hibpRoutes = require('./routes/hibp');
-const authRoutes = require('./routes/auth');
+// Importar todos los modelos
+const User = require('./models/User');
+const Source = require('./models/Source');
+const Verification = require('./models/Verification');
+const Breach = require('./models/Breach');
+const VerificationBreach = require('./models/VerificationBreach');
+const BlogArticle = require('./models/BlogArticle');
+const Category = require('./models/Category');
+const ArticleCategory = require('./models/ArticleCategory');
+const Tool = require('./models/Tool');
+const Notification = require('./models/Notification');
+const ApiLog = require('./models/ApiLog');
+const SystemSetting = require('./models/SystemSetting');
+const Subscription = require('./models/Subscription');
 
-// Inicializar la aplicación Express
-const app = express();
-const PORT = process.env.PORT || 3001;
+// Definir relaciones entre modelos
 
-// Configuración CORS más permisiva
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Relaciones User
+User.hasMany(Verification, { foreignKey: 'userId' });
+User.hasMany(BlogArticle, { foreignKey: 'authorId', as: 'articles' });
+User.hasMany(Notification, { foreignKey: 'userId' });
+User.hasMany(ApiLog, { foreignKey: 'userId' });
+User.hasMany(Subscription, { foreignKey: 'userId' });
 
-// Middleware
-app.use(helmet({
-  contentSecurityPolicy: false,
-  crossOriginEmbedderPolicy: false
-})); // Seguridad con configuración más permisiva
-app.use(express.json()); // Parsear JSON
-app.use(morgan('dev')); // Logging
+// Relaciones Source
+Source.hasMany(Verification, { foreignKey: 'sourceId' });
 
-// Middleware para verificar solicitudes
-app.use((req, res, next) => {
-  console.log(`Solicitud recibida: ${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
-  next();
-});
+// Relaciones Verification
+Verification.belongsTo(User, { foreignKey: 'userId' });
+Verification.belongsTo(Source, { foreignKey: 'sourceId' });
+Verification.belongsToMany(Breach, { through: VerificationBreach, foreignKey: 'verificationId', otherKey: 'breachId' });
 
-// Rutas
-app.use('/api/hibp', hibpRoutes);
-app.use('/api/auth', authRoutes);
+// Relaciones Breach
+Breach.belongsToMany(Verification, { through: VerificationBreach, foreignKey: 'breachId', otherKey: 'verificationId' });
 
-// Ruta de prueba
-app.get('/', (req, res) => {
-  res.json({ message: 'API de SecureCheck funcionando correctamente' });
-});
+// Relaciones BlogArticle
+BlogArticle.belongsTo(User, { foreignKey: 'authorId', as: 'author' });
+BlogArticle.belongsToMany(Category, { through: ArticleCategory, foreignKey: 'articleId', otherKey: 'categoryId' });
 
-// Ruta de prueba CORS
-app.get('/test-cors', (req, res) => {
-  res.json({ success: true, message: 'CORS está configurado correctamente' });
-});
+// Relaciones Category
+Category.belongsToMany(BlogArticle, { through: ArticleCategory, foreignKey: 'categoryId', otherKey: 'articleId' });
 
-// Manejo de errores
-app.use((err, req, res, next) => {
-  console.error('Error en la aplicación:', err.stack);
-  res.status(500).json({
-    success: false,
-    message: 'Error interno del servidor',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
-  });
-});
+// Relaciones Notification
+Notification.belongsTo(User, { foreignKey: 'userId' });
 
-// Iniciar el servidor
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor ejecutándose en el puerto ${PORT}`);
-  console.log(`Accesible en http://localhost:${PORT}`);
-});
+// Relaciones ApiLog
+ApiLog.belongsTo(User, { foreignKey: 'userId' });
 
-module.exports = app;
+// Relaciones Subscription
+Subscription.belongsTo(User, { foreignKey: 'userId' });
+
+// Función para validar todas las relaciones
+const validateRelations = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('Conexión a la base de datos establecida correctamente.');
+    
+    // Verificar que todos los modelos estén sincronizados con la base de datos
+    // Nota: En producción, usar migraciones en lugar de sync
+    await sequelize.sync({ alter: false });
+    console.log('Todos los modelos están sincronizados con la base de datos.');
+    
+    return true;
+  } catch (error) {
+    console.error('Error al validar relaciones:', error);
+    return false;
+  }
+};
+
+module.exports = {
+  sequelize,
+  validateRelations,
+  models: {
+    User,
+    Source,
+    Verification,
+    Breach,
+    VerificationBreach,
+    BlogArticle,
+    Category,
+    ArticleCategory,
+    Tool,
+    Notification,
+    ApiLog,
+    SystemSetting,
+    Subscription
+  }
+};
